@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import HeroSearch from "@/components/HeroSearch";
 import CategoryFilter from "@/components/CategoryFilter";
+import EventList from "@/components/EventList";
 
 /**
  * HomePage - Page d'accueil principale de Fodium
@@ -23,6 +24,9 @@ export default function HomePage() {
 
       {/* FILTRE DE CATÉGORIES */}
       <CategoryFilter filter={filter} setFilter={setFilter} />
+      {/* SECTION SELON LE FILTRE SÉLECTIONNÉ */}
+      {filter === "events" && <EventList searchQuery={searchQuery} />}
+  
     </div>
   );
 }

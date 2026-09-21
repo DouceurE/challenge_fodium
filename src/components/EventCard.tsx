@@ -11,8 +11,9 @@ export interface EventType {
   category: string;
   date: string;
   location: string;
-  price: string;
-  imageUrl: string;
+  ticketPrice: number;
+  shuttlePrice: number;
+  image: string;
   organizer?: string;
 }
 
@@ -22,11 +23,6 @@ interface EventCardProps {
 
 /**
  * EventCard - Composant d'affichage sous forme de carte pour un événement
- * 
- * Rôle :
- * 1. Présente de manière attractive l'image, le titre, la date, le lieu et le prix d'un événement.
- * 2. Propose un appel à l'action clair vers la page de détails de l'événement.
- * 3. Utilise le composant `Image` de Next.js pour une performance visuelle optimale.
  */
 export default function EventCard({ event }: EventCardProps) {
   return (
@@ -34,7 +30,7 @@ export default function EventCard({ event }: EventCardProps) {
       {/* IMAGE ET BADGE CATÉGORIE */}
       <div className="relative h-48 w-full bg-slate-100">
         <Image
-          src={event.imageUrl}
+          src={event.image}
           alt={event.title}
           fill
           className="object-cover"
@@ -66,8 +62,10 @@ export default function EventCard({ event }: EventCardProps) {
         {/* PIED DE CARTE (PRIX ET BOUTON) */}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
           <div>
-            <span className="text-[10px] text-slate-400 block uppercase font-medium">Prix</span>
-            <span className="font-extrabold text-slate-900 text-sm">{event.price}</span>
+            <span className="text-[10px] text-slate-400 block uppercase font-medium">À partir de</span>
+            <span className="font-extrabold text-slate-900 text-sm">
+              {event.ticketPrice.toLocaleString("fr-FR")} FCFA
+            </span>
           </div>
 
           <Link

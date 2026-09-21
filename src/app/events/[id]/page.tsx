@@ -1,129 +1,231 @@
 "use client";
 
-import React, { use } from "react";
+import React, { useState, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, MapPin, Bus, Ticket, ShieldCheck } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { Calendar, MapPin, Bus, Check, ArrowRight, Info, Minus, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MOCK_EVENTS } from "@/components/EventList";
 
-/**
- * @file src/app/events/[id]/page.tsx
- * @description Page de détail dynamique d'un événement.
- * 
- * Rôles principaux :
- * 1. Extraction de l'identifiant de l'événement depuis l'URL dynamique Next.js (App Router).
- * 2. Affichage des informations détaillées (titre, date, lieu, visuel, description et tarif).
- * 3. Intégration de la section "Fodium Transport" (Section 3.3 du cahier des charges) 
- *    permettant de valoriser la réservation de navettes officielles.
- * 4. Bouton d'action principal pour déclencher le processus d'achat du billet.
- */
+const SHUTTLE_STOPS = [
+  "Rond-point Point E (Dakar)",
+  "Station Elton Keur Massar",
+  "Rond-point VDN2 / Yoff",
+  "Pikine Technopole",
+  "Gare des Baux Maraîchers",
+];
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+export default function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const eventId = resolvedParams.id || "1";
 
-export default function EventDetailPage({ params }: PageProps) {
-  const { id } = use(params);
+  // Récupération de l'événement correspondant à l'ID
+  const event = MOCK_EVENTS.find((e) => e.id === eventId) || MOCK_EVENTS[0];
+
+  const [passType, setPassType] = useState<"single" | "combo">("combo");
+  const [selectedStop, setSelectedStop] = useState(SHUTTLE_STOPS[0]);
+  const [quantity, setQuantity] = useState(1);
+
+  // CALCULS DU PRIX
+  const basePrice = event.ticketPrice;
+  const shuttlePrice = passType === "combo" ? event.shuttlePrice : 0;
+  const unitPrice = basePrice + shuttlePrice;
+  const totalPrice = unitPrice * quantity;
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-24 md:pb-12 md:pt-20">
-      <Navbar />
+    <div className="max-w-4xl mx-auto px-4 space-y-8 py-6">
+      {/* BOUTON RETOUR */}
+      <Link 
+        href="/" 
+        className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-orange-500 transition-colors"
+      >
+        ← Retour aux événements
+      </Link>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-        {/* BOUTON RETOUR */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-sm transition-all"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Retour aux événements</span>
-        </Link>
-
-        {/* FICHE ÉVÉNEMENT */}
-        <div className="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm space-y-6">
-          {/* BANNIÈRE IMAGE */}
-          <div className="relative h-64 md:h-80 w-full bg-slate-100">
-            <Image
-              src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1200&q=80"
-              alt="Détails événement"
-              fill
-              className="object-cover"
-              priority
-            />
-            <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm">
-              Musique
-            </span>
-          </div>
-
-          {/* DÉTAILS TEXTUELS */}
-          <div className="p-6 md:p-8 space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-2xl md:text-4xl font-extrabold text-slate-900">
-                Concert Live Afrobeats
-              </h1>
-              <p className="text-xs md:text-sm text-slate-500 font-medium">
-                Identifiant : #{id}
-              </p>
+      {/* BANNIÈRE ÉVÉNEMENT */}
+      <div className="relative h-64 md:h-80 w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-100">
+        <Image 
+          src={event.image} 
+          alt={event.title} 
+          fill
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent flex flex-col justify-end p-6 text-white space-y-2">
+          <span className="text-xs font-bold text-orange-400 uppercase tracking-widest bg-orange-500/20 w-fit px-3 py-1 rounded-full border border-orange-500/30">
+            {event.category}
+          </span>
+          <h1 className="text-2xl md:text-4xl font-black">{event.title}</h1>
+          <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-300">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-orange-400" />
+              <span>{event.date}</span>
             </div>
-
-            {/* METADATAS (DATE, LIEU, SÉCURITÉ) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                <Calendar className="w-5 h-5 text-orange-500 shrink-0" />
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Date et Heure</span>
-                  <span className="text-xs md:text-sm font-bold text-slate-900">Ven. 24 Nov. • 20:00</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
-                <MapPin className="w-5 h-5 text-orange-500 shrink-0" />
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Lieu</span>
-                  <span className="text-xs md:text-sm font-bold text-slate-900">Monument de la Renaissance, Dakar</span>
-                </div>
-              </div>
-            </div>
-
-            {/* DESCRIPTION */}
-            <div className="space-y-2 border-t border-slate-100 pt-6">
-              <h2 className="text-base font-bold text-slate-900">À propos de l'événement</h2>
-              <p className="text-xs md:text-sm text-slate-600 leading-relaxed">
-                Une soirée d'exception réunissant les plus grands artistes Afrobeats de la scène locale et internationale. Réservez votre billet en toute sécurité et votre navette de transport officielle Fodium.
-              </p>
-            </div>
-
-            {/* OPTION NAVETTE TRANSPORT (Section 3.3 du cahier des charges) */}
-            <div className="p-4 bg-orange-50/60 rounded-2xl border border-orange-200/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-orange-600 font-bold text-xs md:text-sm">
-                  <Bus className="w-4 h-4" />
-                  <span>Navette Officielle Fodium Transport</span>
-                </div>
-                <span className="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">
-                  Recommandé
-                </span>
-              </div>
-              <p className="text-xs text-slate-600">
-                Évitez les tracas de stationnement. Réservez votre aller-retour en navette sécurisée depuis votre quartier.
-              </p>
-            </div>
-
-            {/* BARRE D'ACTION / RÉSERVATION */}
-            <div className="flex items-center justify-between border-t border-slate-100 pt-6">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Prix du billet</span>
-                <span className="text-lg md:text-2xl font-extrabold text-slate-900">10 000 FCFA</span>
-              </div>
-
-              <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-xs md:text-sm font-bold px-6 py-3 rounded-2xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all">
-                <Ticket className="w-4 h-4" />
-                <span>Prendre mon billet</span>
-              </button>
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-orange-400" />
+              <span>{event.location}</span>
             </div>
           </div>
         </div>
       </div>
-    </main>
+
+      {/* SECTION DU SÉLECTEUR DE PASS */}
+      <section className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-slate-900">
+            Choisissez votre formule d'accès
+          </h2>
+          <p className="text-xs text-slate-500">
+            Sélectionnez votre billet et ajoutez la navette officielle Fodium Transport.
+          </p>
+        </div>
+
+        {/* OPTIONS : BILLET SEUL vs PASS COMBINÉ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => setPassType("single")}
+            className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between space-y-4 ${
+              passType === "single"
+                ? "border-orange-500 bg-orange-500/5 ring-2 ring-orange-500/20"
+                : "border-slate-200 hover:border-slate-300 bg-slate-50/50"
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">Billet Seul</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Accès simple à l'événement</p>
+              </div>
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                passType === "single" ? "border-orange-500 bg-orange-500 text-white" : "border-slate-300"
+              }`}>
+                {passType === "single" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+            <div className="text-base font-black text-slate-900">
+              {event.ticketPrice.toLocaleString("fr-FR")} FCFA
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPassType("combo")}
+            className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between space-y-4 ${
+              passType === "combo"
+                ? "border-orange-500 bg-orange-500/5 ring-2 ring-orange-500/20"
+                : "border-slate-200 hover:border-slate-300 bg-slate-50/50"
+            }`}
+          >
+            <span className="absolute -top-3 right-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full shadow-sm">
+              Pass Combiné Populaire
+            </span>
+
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-bold text-slate-900 text-base">Billet + Navette</h3>
+                  <Bus className="w-4 h-4 text-orange-500" />
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">Trajet aller-retour garanti</p>
+              </div>
+              <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                passType === "combo" ? "border-orange-500 bg-orange-500 text-white" : "border-slate-300"
+              }`}>
+                {passType === "combo" && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              </div>
+            </div>
+
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-black text-slate-900">
+                {(event.ticketPrice + event.shuttlePrice).toLocaleString("fr-FR")} FCFA
+              </span>
+              <span className="text-[10px] text-orange-600 font-semibold bg-orange-100 px-1.5 py-0.5 rounded">
+                + {event.shuttlePrice.toLocaleString("fr-FR")} FCFA navette
+              </span>
+            </div>
+          </button>
+        </div>
+
+        {/* ARRÊT DE NAVETTE */}
+        <AnimatePresence>
+          {passType === "combo" && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3 pt-2 border-t border-slate-100 overflow-hidden"
+            >
+              <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <Bus className="w-4 h-4 text-orange-500" />
+                <span>Sélectionnez votre point de départ pour la navette :</span>
+              </label>
+
+              <select
+                value={selectedStop}
+                onChange={(e) => setSelectedStop(e.target.value)}
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-medium text-sm focus:outline-none focus:border-orange-500 transition-all"
+              >
+                {SHUTTLE_STOPS.map((stop) => (
+                  <option key={stop} value={stop}>
+                    {stop}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl border border-amber-100 text-[11px] text-amber-800 font-medium">
+                <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  Départ prévu 2h avant le début de l'événement. Votre billet inclut le retour.
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* COMPTEUR DE QUANTITÉ */}
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+          <span className="text-sm font-bold text-slate-800">Nombre de places :</span>
+          <div className="flex items-center gap-3 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="p-1.5 bg-white rounded-lg hover:bg-slate-200 transition-colors text-slate-700"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="font-extrabold text-slate-900 px-2 text-sm">{quantity}</span>
+            <button
+              type="button"
+              onClick={() => setQuantity((prev) => prev + 1)}
+              className="p-1.5 bg-white rounded-lg hover:bg-slate-200 transition-colors text-slate-700"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* RECAPITULATIF & BOUTON COMMANDE */}
+      <section className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="space-y-1 text-center md:text-left w-full md:w-auto">
+          <span className="text-xs text-slate-400 font-medium block">
+            Récapitulatif ({quantity} {quantity > 1 ? "places" : "place"})
+          </span>
+          <div className="text-2xl font-black text-orange-400">
+            {totalPrice.toLocaleString("fr-FR")} FCFA
+          </div>
+          <p className="text-[11px] text-slate-400">
+            {passType === "combo" ? `Billet + Navette depuis ${selectedStop}` : "Billet seul sans transport"}
+          </p>
+        </div>
+
+        <Link
+          href={`/checkout?event=${eventId}&type=${passType}&stop=${encodeURIComponent(selectedStop)}&quantity=${quantity}&total=${totalPrice}`}
+          className="w-full md:w-auto inline-flex items-center justify-center gap-3 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black text-sm px-8 py-4 rounded-2xl transition-all shadow-lg shadow-orange-500/20"
+        >
+          <span>Continuer vers le paiement</span>
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+      </section>
+    </div>
   );
 }

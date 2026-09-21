@@ -3,34 +3,37 @@
 import React from "react";
 import EventCard, { EventType } from "@/components/EventCard";
 
-// Données fictives pour tester l'affichage
-const MOCK_EVENTS: EventType[] = [
+// Données unifiées et exportées pour être partagées avec la page de détail
+export const MOCK_EVENTS: EventType[] = [
   {
     id: "1",
-    title: "Concert Live Afrobeats",
-    category: "Musique",
+    title: "Dakar Music Festival 2026",
+    category: "Concert",
     date: "Ven. 24 Nov. • 20:00",
     location: "Monument de la Renaissance, Dakar",
-    price: "10 000 FCFA",
-    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80",
+    ticketPrice: 15000,
+    shuttlePrice: 3500,
+    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80",
   },
   {
     id: "2",
-    title: "Match Gala de Lutte",
-    category: "Sport",
-    date: "Sam. 02 Déc. • 16:30",
-    location: "Arène Nationale, Pikine",
-    price: "5 000 FCFA",
-    imageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=80",
+    title: "Gala Stand-Up & Rire",
+    category: "Humour",
+    date: "Sam. 02 Déc. • 19:30",
+    location: "Théâtre National Daniel Sorano, Dakar",
+    ticketPrice: 10000,
+    shuttlePrice: 2500,
+    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
   },
   {
     id: "3",
-    title: "Festival Tech & Innovation",
-    category: "Conférence",
-    date: "Jeu. 14 Déc. • 09:00",
-    location: "King Fahd Palace, Dakar",
-    price: "Gratuit",
-    imageUrl: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80",
+    title: "Match Sénégal vs Égypte",
+    category: "Sport",
+    date: "Jeu. 14 Déc. • 17:00",
+    location: "Stade Abdoulaye Wade, Diamniadio",
+    ticketPrice: 5000,
+    shuttlePrice: 3000,
+    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80",
   },
 ];
 
@@ -40,10 +43,6 @@ interface EventListProps {
 
 /**
  * EventList - Grille de cartes d'événements
- * 
- * Rôle :
- * 1. Affiche la liste dynamique des événements filtrés par le terme de recherche.
- * 2. Gère l'état vide si aucun résultat n'est trouvé.
  */
 export default function EventList({ searchQuery }: EventListProps) {
   const filteredEvents = MOCK_EVENTS.filter((event) =>
