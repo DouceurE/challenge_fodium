@@ -7,6 +7,9 @@ import { Calendar, MapPin, Bus, Check, ArrowRight, Info, Minus, Plus } from "luc
 import { motion, AnimatePresence } from "framer-motion";
 import { MOCK_EVENTS } from "@/components/EventList";
 
+/**
+ * Liste des arrêts stratégiques desservis par les navettes Fodium Transport.
+ */
 const SHUTTLE_STOPS = [
   "Rond-point Point E (Dakar)",
   "Station Elton Keur Massar",
@@ -15,18 +18,30 @@ const SHUTTLE_STOPS = [
   "Gare des Baux Maraîchers",
 ];
 
+/**
+ * Page de détails dynamique de l'événement (`/events/[id]`).
+ * 
+ * Rôle & Caractéristiques :
+ * - Extrait l'identifiant d'événement dynamiquement via les paramètres de route (`use(params)`).
+ * - Permet de basculer entre l'option "Billet Seul" et le "Pass Combiné (Billet + Navette)".
+ * - Intègre la sélection du point de ramassage de navette avec mise à jour interactive.
+ * - Propose un compteur de quantité réactif (+ / -) recalculant instantanément le prix total.
+ * - Redirige vers le tunnel de paiement `/checkout` en transmettant la configuration complète via URL params.
+ */
 export default function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  // Résolution asynchrone des paramètres (Next.js App Router)
   const resolvedParams = use(params);
   const eventId = resolvedParams.id || "1";
 
-  // Récupération de l'événement correspondant à l'ID
+  // Récupération dynamique de l'événement ou repli par défaut sur le premier élément
   const event = MOCK_EVENTS.find((e) => e.id === eventId) || MOCK_EVENTS[0];
 
+  // ÉTATS REACT LOCAUX POUR LE PANIER
   const [passType, setPassType] = useState<"single" | "combo">("combo");
   const [selectedStop, setSelectedStop] = useState(SHUTTLE_STOPS[0]);
   const [quantity, setQuantity] = useState(1);
 
-  // CALCULS DU PRIX
+  // LOGIQUE DE CALCUL DU PRIX TOTAL
   const basePrice = event.ticketPrice;
   const shuttlePrice = passType === "combo" ? event.shuttlePrice : 0;
   const unitPrice = basePrice + shuttlePrice;
@@ -34,7 +49,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-8 py-6">
-      {/* BOUTON RETOUR */}
+      {/* BOUTON DE RETOUR VERS LA LISTE PRINCIPALE */}
       <Link 
         href="/" 
         className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-orange-500 transition-colors"
@@ -42,7 +57,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
         ← Retour aux événements
       </Link>
 
-      {/* BANNIÈRE ÉVÉNEMENT */}
+      {/* BANNIÈRE DE PRÉSENTATION DE L'ÉVÉNEMENT */}
       <div className="relative h-64 md:h-80 w-full rounded-3xl overflow-hidden shadow-lg border border-slate-200 bg-slate-100">
         <Image 
           src={event.image} 
@@ -68,7 +83,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
         </div>
       </div>
 
-      {/* SECTION DU SÉLECTEUR DE PASS */}
+      {/* FORMULAIRE DE CONFIGURATION DE LA FORMULE */}
       <section className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-sm space-y-6">
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-slate-900">
@@ -79,7 +94,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
           </p>
         </div>
 
-        {/* OPTIONS : BILLET SEUL vs PASS COMBINÉ */}
+        {/* SÉLECTEUR BASSIN : BILLET SEUL vs PASS COMBINÉ */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <button
             type="button"
@@ -145,7 +160,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
           </button>
         </div>
 
-        {/* ARRÊT DE NAVETTE */}
+        {/* CHOIX DU POINT DE RAMASSAGE DES NAVETTES (ANIMÉ VIA FRAMER MOTION) */}
         <AnimatePresence>
           {passType === "combo" && (
             <motion.div
@@ -181,7 +196,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
           )}
         </AnimatePresence>
 
-        {/* COMPTEUR DE QUANTITÉ */}
+        {/* COMPTEUR DE QUANTITÉ DYNAMIQUE */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
           <span className="text-sm font-bold text-slate-800">Nombre de places :</span>
           <div className="flex items-center gap-3 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
@@ -204,7 +219,7 @@ export default function EventPage({ params }: { params: Promise<{ id: string }> 
         </div>
       </section>
 
-      {/* RECAPITULATIF & BOUTON COMMANDE */}
+      {/* BANDEAU RÉCAPITULATIF & REDIRECTION VERS PAIEMENT */}
       <section className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
         <div className="space-y-1 text-center md:text-left w-full md:w-auto">
           <span className="text-xs text-slate-400 font-medium block">

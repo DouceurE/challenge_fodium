@@ -4,24 +4,31 @@ import React from "react";
 import { Search, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
+/**
+ * Interface définissant les propriétés (props) attendues par le composant HeroSearch.
+ * 
+ * @property searchQuery Terme de recherche actuel saisi par l'utilisateur
+ * @property setSearchQuery Fonction de mise à jour de l'état global/parent de la recherche
+ */
 interface HeroSearchProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
 
 /**
- * HeroSearch - Composant d'en-tête et de recherche unifiée
+ * HeroSearch - Section d'en-tête principale (Hero Section) et barre de recherche unifiée.
  * 
- * Rôle :
- * 1. Affiche l'accroche visuelle principale (Hero Banner) valorisant l'offre Fodium Transport.
- * 2. Fournit une barre de recherche en temps réel permettant de filtrer dynamiquement 
- *    les événements selon leur titre ou leur localisation.
+ * Rôle & Caractéristiques :
+ * - Présente l'accroche marketing de Fodium (billetterie + navettes de transport).
+ * - Utilise `framer-motion` pour des animations fluides d'apparition au chargement.
+ * - Fournit un champ de saisie réactif permettant de filtrer instantanément le catalogue d'événements.
  */
 export default function HeroSearch({ searchQuery, setSearchQuery }: HeroSearchProps) {
   return (
     <div className="space-y-6">
-      {/* HERO SECTION */}
+      {/* SECTION HERO : TITRE, BADGE ET PHRASE D'ACCROCHE */}
       <section className="text-center space-y-4 pt-2">
+        {/* BADGE ANNONCE TRANSPORT */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -31,6 +38,7 @@ export default function HeroSearch({ searchQuery, setSearchQuery }: HeroSearchPr
           <span>Fodium Transport : Vos navettes officielles</span>
         </motion.div>
 
+        {/* TITRE PRINCIPAL EN GRADIENT */}
         <motion.h1
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -43,12 +51,13 @@ export default function HeroSearch({ searchQuery, setSearchQuery }: HeroSearchPr
           </span>
         </motion.h1>
 
+        {/* DESCRIPTION SOUS-TITRE */}
         <p className="text-slate-600 text-sm md:text-base max-w-xl mx-auto font-medium">
           Billets sécurisés par QR code et réservation de navettes en quelques clics.
         </p>
       </section>
 
-      {/* BARRE DE RECHERCHE UNIFIÉE */}
+      {/* BARRE DE RECHERCHE DYNAMIQUE */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}

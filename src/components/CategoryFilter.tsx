@@ -3,23 +3,31 @@
 import React from "react";
 import { Calendar, Bus } from "lucide-react";
 
+/**
+ * Interface définissant les propriétés (props) du composant CategoryFilter.
+ * 
+ * @property filter Identifiant du filtre actuellement actif ('events' pour les événements, 'transport' pour les navettes)
+ * @property setFilter Fonction de mise à jour permettant de basculer le filtre actif
+ */
 interface CategoryFilterProps {
   filter: string;
   setFilter: (filter: string) => void;
 }
 
 /**
- * CategoryFilter - Composant de sélection de catégories principales
+ * Composant de sélection de la vue principale (Événements vs Navettes Transport).
  * 
- * Rôle :
- * 1. Permet à l'utilisateur de basculer facilement entre la vue Événements et la vue Navettes Transport.
- * 2. Met en valeur visuellement l'offre de transport ("Nouveau") avec un badge distinctif.
+ * Rôle & Caractéristiques :
+ * - Permet à l'utilisateur de basculer facilement entre le catalogue des événements et l'offre de navettes.
+ * - Met en valeur la fonctionnalité de transport grâce à un badge "Nouveau" distinctif.
+ * - Offre un retour visuel dynamique (changements de couleur, ombres et contrastes) selon l'onglet actif.
  */
 export default function CategoryFilter({ filter, setFilter }: CategoryFilterProps) {
   return (
     <section className="grid grid-cols-2 gap-4 max-w-2xl mx-auto">
-      {/* BOUTON ÉVÉNEMENTS */}
+      {/* BOUTON SELECTION : FILTRE ÉVÉNEMENTS */}
       <button
+        type="button"
         onClick={() => setFilter("events")}
         className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
           filter === "events"
@@ -33,8 +41,9 @@ export default function CategoryFilter({ filter, setFilter }: CategoryFilterProp
         <span className="font-bold text-sm">Événements</span>
       </button>
 
-      {/* BOUTON NAVETTES TRANSPORT */}
+      {/* BOUTON SELECTION : FILTRE NAVETTES TRANSPORT */}
       <button
+        type="button"
         onClick={() => setFilter("transport")}
         className={`relative p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${
           filter === "transport"
@@ -42,6 +51,7 @@ export default function CategoryFilter({ filter, setFilter }: CategoryFilterProp
             : "bg-white border-slate-200 text-slate-700 hover:border-orange-300"
         }`}
       >
+        {/* BADGE DE MISE EN VALEUR DE LA NOUVELLE FONCTIONNALITÉ */}
         <span className="absolute top-2 right-2 text-[9px] font-black bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full uppercase">
           Nouveau
         </span>

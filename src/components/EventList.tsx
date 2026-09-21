@@ -3,7 +3,10 @@
 import React from "react";
 import EventCard, { EventType } from "@/components/EventCard";
 
-// Données unifiées et exportées pour être partagées avec la page de détail
+/**
+ * Base de données fictive unifiée des événements (Mock Data).
+ * Exportée afin de servir de source de vérité unique à travers toute l'application.
+ */
 export const MOCK_EVENTS: EventType[] = [
   {
     id: "1",
@@ -38,13 +41,20 @@ export const MOCK_EVENTS: EventType[] = [
 ];
 
 interface EventListProps {
+  /** Terme de recherche saisi par l'utilisateur pour filtrer la liste */
   searchQuery: string;
 }
 
 /**
- * EventList - Grille de cartes d'événements
+ * Composant conteneur de présentation sous forme de grille adaptative.
+ * 
+ * Rôle & Caractéristiques :
+ * - Reçoit la recherche en temps réel et filtre le tableau `MOCK_EVENTS` (titre, lieu, catégorie).
+ * - Mappe chaque événement vers un composant `<EventCard />`.
+ * - Gère l'état d'absence de résultat avec un message explicatif en cas de recherche infructueuse.
  */
 export default function EventList({ searchQuery }: EventListProps) {
+  // Filtrage insensible à la casse selon plusieurs champs
   const filteredEvents = MOCK_EVENTS.filter((event) =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,11 +63,13 @@ export default function EventList({ searchQuery }: EventListProps) {
 
   return (
     <section className="space-y-4">
+      {/* EN-TÊTE DE LA GRILLE */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900">Événements à venir</h2>
         <span className="text-xs text-slate-500">{filteredEvents.length} disponible(s)</span>
       </div>
 
+      {/* GRILLE D'ÉVÉNEMENTS OU ÉTAT VIDE */}
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
