@@ -7,6 +7,15 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { QRCodeSVG } from "qrcode.react";
 
+/**
+ * Interface définissant les propriétés attendues par la carte de confirmation de réservation.
+ * 
+ * @interface SuccessTicketCardProps
+ * @property {string} passType - Formule sélectionnée ("combo" pour Billet + Navette, "single" pour Billet seul).
+ * @property {string} stop - Nom de l'arrêt de navette choisi si la formule est "combo".
+ * @property {string} paymentMethod - Identifiant ou nom du moyen de paiement utilisé (ex: "wave", "orange-money").
+ * @property {string} eventId - Identifiant unique de l'événement réservé.
+ */
 interface SuccessTicketCardProps {
   passType: string;
   stop: string;
@@ -15,8 +24,17 @@ interface SuccessTicketCardProps {
 }
 
 /**
- * Composant de confirmation affichant le pass numérique et son QR code dynamique.
- * Déclenche automatiquement l'animation de confettis lors du chargement.
+ * Composant de confirmation de réservation affichant le pass numérique officiel et son QR Code dynamique.
+ * 
+ * Ce composant gère :
+ * - Le déclenchement automatique de la célébration visuelle par jet de confettis au montage (`canvas-confetti`).
+ * - Une animation d'apparition 3D (effet retournement/flip `rotateY`) du billet via `framer-motion`.
+ * - La génération du QR Code officiel haute définition intégrant l'URL de validation du titre.
+ * - Des boutons d'action rapide (Ajout au Wallet mobile, partage du trajet sur WhatsApp).
+ *
+ * @component
+ * @param {SuccessTicketCardProps} props - Propriétés d'affichage et de configuration du billet validé.
+ * @returns {JSX.Element} Carte récapitulative et titre de transport interactif.
  */
 export default function SuccessTicketCard({
   passType,
@@ -24,11 +42,11 @@ export default function SuccessTicketCard({
   paymentMethod,
   eventId,
 }: SuccessTicketCardProps) {
-  // Génération d'un identifiant de billet simulé et de l'URL de vérification
+  // Identification alphanumérique simulée du billet et structuration de la donnée encodée dans le QR Code
   const ticketCode = `FD-2026-9821-SN`;
   const qrData = `https://fodium.kanzey.co/verify-ticket?code=${ticketCode}&event=${eventId}&type=${passType}`;
 
-  // Déclenchement de l'effet visuel de célébration
+  // Déclenchement de l'effet visuel de célébration (confettis) dès le chargement du composant
   useEffect(() => {
     confetti({
       particleCount: 120,
@@ -45,10 +63,12 @@ export default function SuccessTicketCard({
       animate={{ opacity: 1, scale: 1 }}
       className="bg-white rounded-3xl p-6 md:p-8 border border-emerald-200 shadow-2xl text-center space-y-6"
     >
+      {/* Icône de confirmation */}
       <div className="inline-flex p-4 rounded-full bg-emerald-100 text-emerald-600">
         <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
       </div>
 
+      {/* Titre et détails de confirmation du paiement */}
       <div className="space-y-1">
         <h2 className="text-2xl font-black text-slate-900">Paiement Confirmé !</h2>
         <p className="text-xs text-slate-500">
@@ -71,6 +91,7 @@ export default function SuccessTicketCard({
           </span>
         </div>
 
+        {/* Informations résumées du pass */}
         <div className="space-y-1.5">
           <div className="text-xs text-slate-300">
             <span className="text-slate-400 font-medium">Type : </span>
@@ -96,12 +117,12 @@ export default function SuccessTicketCard({
         </span>
       </motion.div>
 
-      {/* BOUTONS D'INITIATIVES CRÉATIVES */}
+      {/* BOUTONS D'INITIATIVES CRÉATIVES (WALLET ET WHATSAPP) */}
       <div className="flex gap-2 pt-1">
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
-          className="flex-1 bg-slate-900 border border-slate-800 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm"
+          className="flex-1 bg-slate-900 border border-slate-800 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
         >
           📱 Ajouter au Wallet
         </motion.button>
@@ -114,12 +135,13 @@ export default function SuccessTicketCard({
           rel="noopener noreferrer"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.96 }}
-          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm"
+          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
         >
           💬 Partager sur WhatsApp
         </motion.a>
       </div>
 
+      {/* Navigation de retour */}
       <div className="pt-2">
         <Link
           href="/"
