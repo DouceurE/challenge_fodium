@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { 
   Bus, 
   Clock, 
@@ -10,131 +10,89 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ShuttleStop } from "./PassSelection";
 
 /**
- * Interface représentant la structure d'un arrêt de navette.
- * 
- * @interface ShuttleStop
- * @property {string} id - Identifiant unique de l'arrêt.
- * @property {string} name - Nom de l'arrêt de bus/navette.
- * @property {string} zone - Zone géographique dans la région de Dakar.
- * @property {number} baseMinutes - Temps de trajet de base en minutes jusqu'au site.
- * @property {number} distanceKm - Distance estimée en kilomètres.
- * @property {string[]} waypoints - Étapes intermédiaires du trajet.
- */
-export interface ShuttleStop {
-  id: string;
-  name: string;
-  zone: string;
-  baseMinutes: number;
-  distanceKm: number;
-  waypoints: string[];
-}
-
-/**
- * Interface des propriétés du composant ShuttleRouteWidget.
- * 
+ * Propriétés attendues par le composant ShuttleRouteWidget.
+ *
  * @interface ShuttleRouteWidgetProps
- * @property {string} pickupStop - Nom de l'arrêt de ramassage sélectionné par l'utilisateur.
- * @property {string} destination - Lieu de destination finale (ex: nom de la salle ou du stade).
+ * @property {ShuttleStop} selectedStop - L'objet arrêt actuellement sélectionné.
+ * @property {(stop: ShuttleStop) => void} setSelectedStop - Fonction de mise à jour de l'arrêt dans le parent.
+ * @property {ShuttleStop[]} shuttleStops - Liste complète des arrêts disponibles.
+ * @property {string} destination - Nom du lieu de destination finale.
  */
 export interface ShuttleRouteWidgetProps {
-  pickupStop: string;
+  selectedStop: ShuttleStop;
+  setSelectedStop: (stop: ShuttleStop) => void;
+  shuttleStops: ShuttleStop[];
   destination: string;
 }
 
-/** Liste de référence des points de ramassage Fodium à Dakar */
-const SHUTTLE_STOPS: ShuttleStop[] = [
-  {
-    id: "pointe-e",
-    name: "Rond-point Point E (Dakar)",
-    zone: "Dakar Plateau / Fann",
-    baseMinutes: 35,
-    distanceKm: 14.2,
-    waypoints: ["Point E", "Avenue Cheikh Anta Diop", "Autoroute A1"],
-  },
-  {
-    id: "keur-massar",
-    name: "Station Elton Keur Massar",
-    zone: "Banlieue Est",
-    baseMinutes: 45,
-    distanceKm: 18.5,
-    waypoints: ["Keur Massar", "Péage Keur Massar", "Autoroute A1"],
-  },
-  {
-    id: "yoff",
-    name: "Rond-point VDN2 / Yoff",
-    zone: "Dakar Nord",
-    baseMinutes: 30,
-    distanceKm: 11.0,
-    waypoints: ["Yoff", "Voie Dégagement Nord", "Autoroute A1"],
-  },
-  {
-    id: "pikine",
-    name: "Pikine Technopole",
-    zone: "Grande Banlieue",
-    baseMinutes: 25,
-    distanceKm: 9.5,
-    waypoints: ["Pikine Technopole", "Rond-point Cambérène", "Autoroute A1"],
-  },
-  {
-    id: "baux-maraichers",
-    name: "Gare des Baux Maraîchers",
-    zone: "Pikine / Hann",
-    baseMinutes: 30,
-    distanceKm: 12.0,
-    waypoints: ["Baux Maraîchers", "Hann Maristes", "Autoroute A1"],
-  },
-];
+/**
+ * Métriques de simulation pour chaque arrêt de Dakar (temps de base, distance, waypoints).
+ */
+const STOP_METRICS: Record<string, { baseMinutes: number; distanceKm: number; zone: string; waypoints: string[] }> = {
+  "Rond-point Point E (Dakar)": { baseMinutes: 35, distanceKm: 14.2, zone: "Dakar Plateau / Fann", waypoints: ["Point E", "Avenue Cheikh Anta Diop", "Autoroute A1"] },
+  "Station Elton Keur Massar": { baseMinutes: 45, distanceKm: 18.5, zone: "Banlieue Est", waypoints: ["Keur Massar", "Péage Keur Massar", "Autoroute A1"] },
+  "Rond-point VDN2 / Yoff": { baseMinutes: 30, distanceKm: 11.0, zone: "Dakar Nord", waypoints: ["Yoff", "Voie Dégagement Nord", "Autoroute A1"] },
+  "Pikine Technopole": { baseMinutes: 25, distanceKm: 9.5, zone: "Grande Banlieue", waypoints: ["Pikine Technopole", "Rond-point Cambérène", "Autoroute A1"] },
+  "Gare des Baux Maraîchers": { baseMinutes: 30, distanceKm: 12.0, zone: "Pikine / Hann", waypoints: ["Baux Maraîchers", "Hann Maristes", "Autoroute A1"] },
+};
 
 /**
- * Composant interactif d'estimation d'itinéraire et de simulation de trajet pour les navettes Fodium.
- * Se synchronise automatiquement avec l'arrêt choisi dans la page parente.
+ * Composant de simulation du trajet de navette Fodium et du trafic en temps réel.
+ * Se synchronise instantanément avec la sélection faite dans le formulaire de la page.
  *
  * @component
- * @param {ShuttleRouteWidgetProps} props - Propriétés transmises par la page parente.
- * @returns {JSX.Element} Le widget de simulation d'itinéraire.
+ * @param {ShuttleRouteWidgetProps} props - Propriétés du composant.
+ * @returns {JSX.Element | null} Le widget interactif ou null si non monté (sécurité SSR).
  */
 export default function ShuttleRouteWidget({ 
-  pickupStop, 
+  selectedStop, 
+  setSelectedStop, 
+  shuttleStops,
   destination 
 }: ShuttleRouteWidgetProps) {
-  /** Heure de départ sélectionnée (format "HH:MM") */
-  const [departureTime, setDepartureTime] = React.useState<string>("16:30");
+  const [isMounted, setIsMounted] = useState(false);
+  const [departureTime, setDepartureTime] = useState<string>("16:30");
 
-  /** 
-   * Recherche dynamique de l'arrêt correspondant à la prop `pickupStop` reçue du parent.
+  // Sécurité pour éviter les erreurs d'hydratation SSR sous Next.js
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  /**
+   * Récupère les métriques de trafic et de distance propres à l'arrêt actuellement sélectionné.
    */
-  const currentStop = useMemo(() => {
-    const found = SHUTTLE_STOPS.find(
-      (s) => s.name.toLowerCase().includes(pickupStop.toLowerCase()) || 
-             pickupStop.toLowerCase().includes(s.name.toLowerCase())
-    );
-    return found || SHUTTLE_STOPS[0];
-  }, [pickupStop]);
+  const currentStopDetails = useMemo(() => {
+    return STOP_METRICS[selectedStop.name] || {
+      baseMinutes: 30,
+      distanceKm: 12.0,
+      zone: "Dakar",
+      waypoints: [selectedStop.name, "Autoroute A1"]
+    };
+  }, [selectedStop]);
 
-  /** 
-   * Modélisation de la densité du trafic selon l'heure de départ.
+  /**
+   * Calcule l'impact du trafic en fonction de l'heure de départ choisie.
    */
   const trafficImpact = useMemo(() => {
     const [hours] = departureTime.split(":").map(Number);
-    
-    // Heures de pointe à Dakar (17h - 19h)
     if (hours >= 17 && hours <= 19) {
       return { multiplier: 1.4, status: "Densité Élevée", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" };
     }
-    // Début de soirée (19h - 21h)
     if (hours > 19 && hours <= 21) {
       return { multiplier: 1.1, status: "Fluidité Moyenne", color: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" };
     }
-    // Heures creuses
     return { multiplier: 1.0, status: "Fluide", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" };
   }, [departureTime]);
 
-  /** Durée finale estimée du trajet en minutes */
-  const estimatedMinutes = Math.round(currentStop.baseMinutes * trafficImpact.multiplier);
+  // Durée estimée finale du trajet
+  const estimatedMinutes = Math.round(currentStopDetails.baseMinutes * trafficImpact.multiplier);
 
-  /** Calcul de l'heure d'arrivée estimée */
+  /**
+   * Calcule l'heure d'arrivée estimée.
+   */
   const arrivalTime = useMemo(() => {
     const [hours, minutes] = departureTime.split(":").map(Number);
     const totalMinutes = hours * 60 + minutes + estimatedMinutes;
@@ -143,13 +101,17 @@ export default function ShuttleRouteWidget({
     return `${String(arrHours).padStart(2, "0")}:${String(arrMinutes).padStart(2, "0")}`;
   }, [departureTime, estimatedMinutes]);
 
-  /** Économie de CO2 estimée */
-  const co2SavedKg = (currentStop.distanceKm * 0.12).toFixed(1);
+  // Calcul du CO2 économisé
+  const co2SavedKg = (currentStopDetails.distanceKm * 0.12).toFixed(1);
 
-  /** Construction de l'itinéraire complet comprenant les waypoints et le terminus */
+  /**
+   * Génère les étapes de l'itinéraire.
+   */
   const fullWaypoints = useMemo(() => {
-    return [currentStop.name, ...currentStop.waypoints.slice(1), destination || "Site Événement"];
-  }, [currentStop, destination]);
+    return [selectedStop.name, ...currentStopDetails.waypoints.slice(1), destination || "Site Événement"];
+  }, [selectedStop, currentStopDetails, destination]);
+
+  if (!isMounted) return null;
 
   return (
     <motion.div 
@@ -158,7 +120,7 @@ export default function ShuttleRouteWidget({
       transition={{ duration: 0.4 }}
       className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200/80 shadow-xl space-y-6 max-w-2xl mx-auto"
     >
-      {/* EN-TÊTE DU WIDGET */}
+      {/* En-tête du widget */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-orange-500/10 text-orange-600 rounded-2xl">
@@ -167,7 +129,7 @@ export default function ShuttleRouteWidget({
           <div>
             <h3 className="text-lg font-black text-slate-900">Simulateur de Navette Fodium</h3>
             <p className="text-xs text-slate-500">
-              Trajet estimé depuis <span className="font-bold text-slate-700">{currentStop.name}</span>
+              Trajet estimé depuis <span className="font-bold text-slate-700">{selectedStop.name}</span>
             </p>
           </div>
         </div>
@@ -176,16 +138,28 @@ export default function ShuttleRouteWidget({
         </span>
       </div>
 
-      {/* SÉLECTEUR D'HORAIRE DE DÉPART */}
+      {/* Menus déroulants (Point de départ synchronisé + Heure) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-orange-500" /> Point de départ actif :
+            <MapPin className="w-3.5 h-3.5 text-orange-500" /> Point de départ :
           </label>
-          <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-800 flex items-center justify-between">
-            <span>📍 {currentStop.name}</span>
-            <span className="text-[10px] text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md font-extrabold">{currentStop.zone}</span>
-          </div>
+          <select
+            value={selectedStop.id}
+            onChange={(e) => {
+              const found = shuttleStops.find((s) => s.id === e.target.value);
+              if (found) {
+                setSelectedStop(found);
+              }
+            }}
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 transition-all cursor-pointer"
+          >
+            {shuttleStops.map((stop) => (
+              <option key={stop.id} value={stop.id}>
+                📍 {stop.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="space-y-1.5">
@@ -206,10 +180,10 @@ export default function ShuttleRouteWidget({
         </div>
       </div>
 
-      {/* TABLEAU DE BORD DES RÉSULTATS DYNAMIQUES */}
+      {/* Tableau de bord des résultats dynamiques */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={`${currentStop.id}-${departureTime}`}
+          key={`${selectedStop.id}-${departureTime}`}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
@@ -248,7 +222,7 @@ export default function ShuttleRouteWidget({
         </motion.div>
       </AnimatePresence>
 
-      {/* ÉTAPES CLÉS DE L'ITINÉRAIRE */}
+      {/* Itinéraire étape par étape */}
       <div className="space-y-3">
         <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
           <Navigation className="w-3.5 h-3.5 text-orange-500" /> Itinéraire étape par étape :

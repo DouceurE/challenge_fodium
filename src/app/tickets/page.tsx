@@ -7,6 +7,11 @@ import { motion } from "framer-motion";
 import TicketCard, { TicketItem } from "./TicketCard";
 import TicketModal from "./TicketModal";
 
+/**
+ * Jeux de données de démonstration représentant l'ensemble des pass et billets de l'utilisateur.
+ * 
+ * @type {TicketItem[]}
+ */
 const MOCK_TICKETS: TicketItem[] = [
   {
     id: "t1",
@@ -46,17 +51,31 @@ const MOCK_TICKETS: TicketItem[] = [
 ];
 
 /**
- * Page "Mes Billets" (/tickets).
- * Découpée en sous-composants modulaires (TicketCard, TicketModal) pour respecter la SRP.
+ * Composant de la page du portefeuille "Mes Billets" (`/tickets`).
+ * 
+ * Permet à l'utilisateur de consulter ses titres de transport et billets d'événements,
+ * de basculer entre les réservations à venir et l'historique des billets utilisés, 
+ * et d'afficher le QR code de contrôle en grand via la modale dédiée.
+ *
+ * Découpé en sous-composants modulaires (`TicketCard`, `TicketModal`) pour respecter 
+ * le principe de responsabilité unique (SRP).
+ *
+ * @component
+ * @returns {JSX.Element} La page principale du portefeuille digital.
  */
 export default function TicketsPage() {
+  /** État pour gérer l'onglet de filtrage actif ("valid" = À venir, "used" = Historique) */
   const [filter, setFilter] = useState<"valid" | "used">("valid");
+
+  /** État stockant le billet actuellement sélectionné pour l'affichage en modale */
   const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
 
+  /** Liste des billets filtrés selon l'état sélectionné */
   const filteredTickets = MOCK_TICKETS.filter((t) => t.status === filter);
 
   return (
     <div className="max-w-4xl mx-auto px-4 space-y-8 py-6 pb-24 md:pb-12">
+      {/* En-tête de la page */}
       <div className="space-y-2">
         <span className="text-xs font-bold text-orange-500 uppercase tracking-widest bg-orange-100 px-3 py-1 rounded-full">
           Portefeuille Digital
@@ -69,11 +88,12 @@ export default function TicketsPage() {
         </p>
       </div>
 
+      {/* Barre d'onglets de filtrage */}
       <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl max-w-xs">
         <button
           type="button"
           onClick={() => setFilter("valid")}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             filter === "valid" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
           }`}
         >
@@ -82,7 +102,7 @@ export default function TicketsPage() {
         <button
           type="button"
           onClick={() => setFilter("used")}
-          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             filter === "used" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
           }`}
         >
@@ -90,6 +110,7 @@ export default function TicketsPage() {
         </button>
       </div>
 
+      {/* Liste des cartes de billets ou état vide */}
       {filteredTickets.length > 0 ? (
         <div className="space-y-4">
           {filteredTickets.map((ticket) => (
@@ -116,7 +137,7 @@ export default function TicketsPage() {
         </div>
       )}
 
-      {/* MODAL QR CODE */}
+      {/* Modale d'affichage du QR Code plein écran */}
       <TicketModal ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
     </div>
   );

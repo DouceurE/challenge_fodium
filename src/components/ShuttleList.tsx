@@ -5,6 +5,22 @@ import { Bus, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 import ShuttleCard from "./ShuttleCard";
 
+/**
+ * Modèle de données représentant une ligne de navette événementielle ou interurbaine.
+ * 
+ * @interface ShuttleRouteType
+ * @property {string} id - Identifiant unique de la navette.
+ * @property {string} eventId - Identifiant de l'événement associé.
+ * @property {string} title - Intitulé commercial de la ligne de navette.
+ * @property {string} departureCity - Ville ou point de départ.
+ * @property {string} arrivalCity - Ville ou destination d'arrivée.
+ * @property {string} departureTime - Plage horaire ou fréquences des départs.
+ * @property {string} frequency - Jour(s) de fonctionnement de la ligne.
+ * @property {number} stopsCount - Nombre d'arrêts desservis sur le trajet.
+ * @property {number} price - Tarif du trajet par personne en FCFA.
+ * @property {string} image - URL de l'image d'illustration du trajet.
+ * @property {string} popularFor - Nom de l'événement phare associé à ce trajet.
+ */
 export interface ShuttleRouteType {
   id: string;
   eventId: string;
@@ -19,6 +35,11 @@ export interface ShuttleRouteType {
   popularFor: string;
 }
 
+/**
+ * Liste de données fictives (MOCK) représentant les trajets de navettes disponibles.
+ *
+ * @type {ShuttleRouteType[]}
+ */
 export const MOCK_SHUTTLES: ShuttleRouteType[] = [
   {
     id: "s1",
@@ -61,14 +82,30 @@ export const MOCK_SHUTTLES: ShuttleRouteType[] = [
   },
 ];
 
+/**
+ * Propriétés du composant ShuttleList.
+ * 
+ * @interface ShuttleListProps
+ * @property {string} searchQuery - Terme de recherche saisi par l'utilisateur pour filtrer les navettes.
+ */
 interface ShuttleListProps {
   searchQuery: string;
 }
 
 /**
- * ShuttleList - Composant conteneur affichant la grille des navettes.
+ * Composant conteneur affichant la liste des navettes Fodium Transport.
+ * 
+ * Il gère le filtrage dynamique des lignes selon les mots-clés de recherche
+ * et affiche les cartes de navettes sous forme de grille animée.
+ *
+ * @component
+ * @param {ShuttleListProps} props - Propriétés du composant.
+ * @returns {JSX.Element} La section complète affichant les lignes de navettes.
  */
 export default function ShuttleList({ searchQuery }: ShuttleListProps) {
+  /**
+   * Filtrage dynamique des navettes sur la base du titre, des villes de départ/arrivée ou de l'événement.
+   */
   const filteredShuttles = MOCK_SHUTTLES.filter(
     (shuttle) =>
       shuttle.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,6 +116,7 @@ export default function ShuttleList({ searchQuery }: ShuttleListProps) {
 
   return (
     <section className="space-y-6">
+      {/* Banner de réassurance Fodium Transport */}
       <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-center md:text-left">
           <div className="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-xs font-black backdrop-blur-sm">
@@ -94,6 +132,7 @@ export default function ShuttleList({ searchQuery }: ShuttleListProps) {
         </div>
       </div>
 
+      {/* En-tête de la section des résultats */}
       <div className="flex items-center justify-between pt-2">
         <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           <Bus className="w-5 h-5 text-orange-500" />
@@ -102,6 +141,7 @@ export default function ShuttleList({ searchQuery }: ShuttleListProps) {
         <span className="text-xs text-slate-500">{filteredShuttles.length} trajet(s)</span>
       </div>
 
+      {/* Grille des cartes navettes animées ou message d'absence de résultat */}
       {filteredShuttles.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredShuttles.map((shuttle) => (

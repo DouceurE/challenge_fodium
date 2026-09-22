@@ -154,8 +154,11 @@ export default function EventPage({ params }: EventPageProps) {
       {/* WIDGET ITINÉRAIRE ET JAUGE DE DISPONIBILITÉ */}
       {passType === "combo" && (
         <div className="space-y-4">
+          
           <ShuttleRouteWidget 
-            pickupStop={selectedStop.name} 
+            selectedStop={selectedStop} 
+            setSelectedStop={setSelectedStop}
+            shuttleStops={SHUTTLE_STOPS}
             destination={event.location} 
           />
           <SeatAvailabilityGauge stopName={selectedStop.name} />

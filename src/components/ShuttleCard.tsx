@@ -6,24 +6,40 @@ import { useRouter } from "next/navigation";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 import { ShuttleRouteType } from "./ShuttleList";
 
+/**
+ * Propriétés du composant ShuttleCard.
+ * 
+ * @interface ShuttleCardProps
+ * @property {ShuttleRouteType} shuttle - Données détaillées de la ligne de navette à afficher.
+ */
 interface ShuttleCardProps {
   shuttle: ShuttleRouteType;
 }
 
 /**
- * Composant carte de navette.
- * Redirige directement vers le tunnel de réservation de l'événement associé.
+ * Composant carte affichant les détails d'une ligne de navette.
+ * 
+ * Présente le point de départ, la destination, les horaires, le tarif et
+ * redirige l'utilisateur directement vers le tunnel de réservation de l'événement associé.
+ *
+ * @component
+ * @param {ShuttleCardProps} props - Propriétés du composant.
+ * @returns {JSX.Element} La carte d'affichage de la navette.
  */
 export default function ShuttleCard({ shuttle }: ShuttleCardProps) {
+  /** Hook de navigation Next.js pour effectuer les redirections */
   const router = useRouter();
 
+  /**
+   * Redirige l'utilisateur vers la page de réservation de l'événement associé à la navette.
+   */
   const handleReserveClick = () => {
-    // Redirection directe vers la page de paiement / réservation de l'événement
     router.push(`/events/${shuttle.eventId}`);
   };
 
   return (
     <div className="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+      {/* Illustration et badge d'association d'événement */}
       <div className="relative h-44 w-full bg-slate-100">
         <Image 
           src={shuttle.image} 
@@ -37,10 +53,12 @@ export default function ShuttleCard({ shuttle }: ShuttleCardProps) {
         </span>
       </div>
 
+      {/* Contenu principal de la carte */}
       <div className="p-5 flex flex-col flex-grow justify-between space-y-4">
         <div className="space-y-3">
           <h4 className="font-extrabold text-slate-900 text-base line-clamp-1">{shuttle.title}</h4>
 
+          {/* Informations sur l'itinéraire et les horaires */}
           <div className="space-y-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-100">
             <div className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
@@ -57,6 +75,7 @@ export default function ShuttleCard({ shuttle }: ShuttleCardProps) {
           </div>
         </div>
 
+        {/* Pied de carte avec tarif et bouton d'action */}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
           <div>
             <span className="text-[10px] text-slate-400 block uppercase font-medium">Aller-Retour</span>

@@ -5,15 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG as QRCode } from "qrcode.react";
 import { TicketItem } from "./TicketCard";
 
+/**
+ * Propriétés du composant TicketModal.
+ * 
+ * @interface TicketModalProps
+ * @property {TicketItem | null} ticket - Le billet sélectionné pour l'affichage en grand, ou `null` si la modale est fermée.
+ * @property {() => void} onClose - Fonction de rappel pour fermer la modale.
+ */
 interface TicketModalProps {
-  /** Billet sélectionné pour affichage en grand */
   ticket: TicketItem | null;
-  /** Fonction de fermeture de la modale */
   onClose: () => void;
 }
 
 /**
- * Composant Modale dédié à la présentation plein écran du QR Code de validation.
+ * Composant Modale dédié à la présentation plein écran du QR Code de validation du billet.
+ * 
+ * Affiche les détails de l'événement, les informations de navette si applicable, 
+ * ainsi que le QR code haute définition généré dynamiquement à partir du code du billet.
+ *
+ * @component
+ * @param {TicketModalProps} props - Propriétés du composant.
+ * @returns {JSX.Element} La modale d'affichage du ticket.
  */
 export default function TicketModal({ ticket, onClose }: TicketModalProps) {
   return (
@@ -33,17 +45,19 @@ export default function TicketModal({ ticket, onClose }: TicketModalProps) {
             onClick={(e) => e.stopPropagation()}
             className="bg-slate-950 text-white rounded-3xl p-6 md:p-8 max-w-sm w-full border border-slate-800 space-y-6 text-center shadow-2xl relative overflow-hidden"
           >
+            {/* En-tête de la modale */}
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <span className="text-xs font-bold text-orange-400">Pass Officiel Fodium</span>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-xs text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded-lg"
+                className="text-xs text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded-lg cursor-pointer"
               >
                 Fermer ✕
               </button>
             </div>
 
+            {/* Détails du billet */}
             <div className="space-y-1 text-left">
               <h3 className="font-extrabold text-lg text-white">{ticket.eventTitle}</h3>
               <p className="text-xs text-slate-400">{ticket.date}</p>
@@ -54,6 +68,7 @@ export default function TicketModal({ ticket, onClose }: TicketModalProps) {
               )}
             </div>
 
+            {/* Génération du QR Code */}
             <div className="flex flex-col items-center justify-center p-5 bg-white rounded-2xl max-w-[220px] mx-auto shadow-inner">
               <QRCode
                 value={`https://fodium.kanzey.co/verify-ticket?code=${ticket.code}`}
@@ -62,6 +77,7 @@ export default function TicketModal({ ticket, onClose }: TicketModalProps) {
               />
             </div>
 
+            {/* Code texte et consignes de contrôle */}
             <div className="space-y-1">
               <span className="block text-center text-xs text-slate-300 font-mono tracking-widest font-bold">
                 {ticket.code}

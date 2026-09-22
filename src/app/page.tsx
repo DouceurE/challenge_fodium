@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import HeroSearch from "@/components/HeroSearch";
 import CategoryFilter from "@/components/CategoryFilter";
 import EventList from "@/components/EventList";
+import ShuttleList from "@/components/ShuttleList";
 
 /**
  * HomePage - Composant de la page d'accueil principale de Fodium (`/`).
@@ -11,7 +12,7 @@ import EventList from "@/components/EventList";
  * Rôle & Caractéristiques :
  * - Sert de point d'entrée central à l'application billetterie et transport.
  * - Maintient les états locaux de recherche (`searchQuery`) et de filtrage (`filter`).
- * - Orchestre l'affichage dynamique des sous-composants modulaires (`HeroSearch`, `CategoryFilter`, `EventList`).
+ * - Orchestre l'affichage dynamique des sous-composants modulaires (`HeroSearch`, `CategoryFilter`, `EventList`, `ShuttleList`).
  */
 export default function HomePage() {
   /** Terme de recherche saisi dans la barre HeroSearch */
@@ -29,7 +30,11 @@ export default function HomePage() {
       <CategoryFilter filter={filter} setFilter={setFilter} />
 
       {/* AFFICHAGE CONDITIONNEL EN FONCTION DU FILTRE SÉLECTIONNÉ */}
-      {filter === "events" && <EventList searchQuery={searchQuery} />}
+      {filter === "events" ? (
+        <EventList searchQuery={searchQuery} />
+      ) : (
+        <ShuttleList searchQuery={searchQuery} />
+      )}
     </div>
   );
 }

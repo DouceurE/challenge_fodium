@@ -1,9 +1,28 @@
 "use client";
 
-
+import React from "react";
 import { Mail, Phone, MapPin } from "lucide-react";
 
+/**
+ * Composant de pied de page (Footer) pour la plateforme Fodium Transport.
+ * 
+ * Il intègre la section d'abonnement à la newsletter, les liens de navigation 
+ * vers les services et pages d'entreprise, les informations de contact commercial 
+ * et de support, ainsi que les liens vers les réseaux sociaux et mentions légales.
+ *
+ * @component
+ * @returns {JSX.Element} Le composant Footer complet.
+ */
 export default function Footer() {
+  /**
+   * Empêche le comportement de soumission par défaut du formulaire de newsletter.
+   * 
+   * @param {React.FormEvent<HTMLFormElement>} e - L'événement de soumission du formulaire.
+   */
+  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
+
   return (
     <footer className="bg-[#121212] text-slate-300 text-xs pt-12 pb-20 md:pb-8 border-t border-slate-800">
       <div className="max-w-6xl mx-auto px-6 space-y-10">
@@ -32,7 +51,7 @@ export default function Footer() {
                 Recevez les dernières actualités et événements
               </p>
               
-              <form onSubmit={(e) => e.preventDefault()} className="flex items-center gap-2 pt-1">
+              <form onSubmit={handleNewsletterSubmit} className="flex items-center gap-2 pt-1">
                 <input
                   type="email"
                   placeholder="Votre email"
@@ -40,7 +59,7 @@ export default function Footer() {
                 />
                 <button
                   type="submit"
-                  className="bg-[#f26522] hover:bg-[#d95516] text-white font-bold px-5 py-2.5 rounded-lg transition-colors shrink-0"
+                  className="bg-[#f26522] hover:bg-[#d95516] text-white font-bold px-5 py-2.5 rounded-lg transition-colors shrink-0 cursor-pointer"
                 >
                   S'abonner
                 </button>
@@ -107,7 +126,7 @@ export default function Footer() {
               </svg>
             </a>
             
-            <a href="#" className="hover:text-orange-500 transition-colors font-bold text-xs">TikTok</a>
+            <a href="#" className="hover:text-orange-500 transition-colors font-bold text-xs" aria-label="TikTok">TikTok</a>
             
             <a href="#" className="hover:text-orange-500 transition-colors" aria-label="Instagram">
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">

@@ -28,6 +28,7 @@ export interface EventType {
   shuttlePrice: number;
   image: string;
   organizer?: string;
+  description?: string;
 }
 
 interface EventCardProps {
