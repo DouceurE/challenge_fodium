@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 import { 
   Bus, 
   Clock, 
@@ -43,7 +43,7 @@ export interface ShuttleRouteWidgetProps {
   destination: string;
 }
 
-/** Liste des points de ramassage principaux des navettes Fodium dans la région de Dakar */
+/** Liste de référence des points de ramassage Fodium à Dakar */
 const SHUTTLE_STOPS: ShuttleStop[] = [
   {
     id: "pointe-e",
@@ -89,6 +89,7 @@ const SHUTTLE_STOPS: ShuttleStop[] = [
 
 /**
  * Composant interactif d'estimation d'itinéraire et de simulation de trajet pour les navettes Fodium.
+ * Se synchronise automatiquement avec l'arrêt choisi dans la page parente.
  *
  * @component
  * @param {ShuttleRouteWidgetProps} props - Propriétés transmises par la page parente.
@@ -98,30 +99,19 @@ export default function ShuttleRouteWidget({
   pickupStop, 
   destination 
 }: ShuttleRouteWidgetProps) {
-  /** Identifiant de l'arrêt sélectionné localement */
-  const [selectedStopId, setSelectedStopId] = useState<string>("pointe-e");
-  
   /** Heure de départ sélectionnée (format "HH:MM") */
-  const [departureTime, setDepartureTime] = useState<string>("16:30");
+  const [departureTime, setDepartureTime] = React.useState<string>("16:30");
 
-  /**
-   * Synchronisation automatique si la prop `pickupStop` change dans le composant parent.
+  /** 
+   * Recherche dynamique de l'arrêt correspondant à la prop `pickupStop` reçue du parent.
    */
-  useEffect(() => {
-    if (pickupStop) {
-      const matchedStop = SHUTTLE_STOPS.find(
-        (s) => s.name.toLowerCase().includes(pickupStop.toLowerCase()) || pickupStop.toLowerCase().includes(s.name.toLowerCase())
-      );
-      if (matchedStop) {
-        setSelectedStopId(matchedStop.id);
-      }
-    }
-  }, [pickupStop]);
-
-  /** Arrêt actuellement sélectionné dans le tableau de données */
   const currentStop = useMemo(() => {
-    return SHUTTLE_STOPS.find((stop) => stop.id === selectedStopId) || SHUTTLE_STOPS[0];
-  }, [selectedStopId]);
+    const found = SHUTTLE_STOPS.find(
+      (s) => s.name.toLowerCase().includes(pickupStop.toLowerCase()) || 
+             pickupStop.toLowerCase().includes(s.name.toLowerCase())
+    );
+    return found || SHUTTLE_STOPS[0];
+  }, [pickupStop]);
 
   /** 
    * Modélisation de la densité du trafic selon l'heure de départ.
@@ -158,7 +148,7 @@ export default function ShuttleRouteWidget({
 
   /** Construction de l'itinéraire complet comprenant les waypoints et le terminus */
   const fullWaypoints = useMemo(() => {
-    return [...currentStop.waypoints, destination || "Site Événement"];
+    return [currentStop.name, ...currentStop.waypoints.slice(1), destination || "Site Événement"];
   }, [currentStop, destination]);
 
   return (
@@ -177,7 +167,7 @@ export default function ShuttleRouteWidget({
           <div>
             <h3 className="text-lg font-black text-slate-900">Simulateur de Navette Fodium</h3>
             <p className="text-xs text-slate-500">
-              Trajet estimé vers <span className="font-bold text-slate-700">{destination}</span>
+              Trajet estimé depuis <span className="font-bold text-slate-700">{currentStop.name}</span>
             </p>
           </div>
         </div>
@@ -186,27 +176,18 @@ export default function ShuttleRouteWidget({
         </span>
       </div>
 
-      {/* SÉLECTEURS D'ARRÊT ET D'HORAIRE */}
+      {/* SÉLECTEUR D'HORAIRE DE DÉPART */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Sélecteur de point de départ */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-orange-500" /> Point de départ :
+            <MapPin className="w-3.5 h-3.5 text-orange-500" /> Point de départ actif :
           </label>
-          <select
-            value={selectedStopId}
-            onChange={(e) => setSelectedStopId(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 transition-all cursor-pointer"
-          >
-            {SHUTTLE_STOPS.map((stop) => (
-              <option key={stop.id} value={stop.id}>
-                {stop.name} ({stop.zone})
-              </option>
-            ))}
-          </select>
+          <div className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 py-3 text-xs font-bold text-slate-800 flex items-center justify-between">
+            <span>📍 {currentStop.name}</span>
+            <span className="text-[10px] text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md font-extrabold">{currentStop.zone}</span>
+          </div>
         </div>
 
-        {/* Sélecteur d'heure de départ */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-orange-500" /> Heure de départ souhaitée :
@@ -225,10 +206,10 @@ export default function ShuttleRouteWidget({
         </div>
       </div>
 
-      {/* TABLEAU DE BORD DES RÉSULTATS DYNAMIQUES AVEC ANIMATION */}
+      {/* TABLEAU DE BORD DES RÉSULTATS DYNAMIQUES */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={`${selectedStopId}-${departureTime}`}
+          key={`${currentStop.id}-${departureTime}`}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
@@ -252,7 +233,6 @@ export default function ShuttleRouteWidget({
             </div>
           </div>
 
-          {/* INDICATEUR DE TRAFIC ET DE CO2 */}
           <div className="flex flex-wrap justify-between items-center text-xs pt-1 gap-2">
             <div className="flex items-center gap-2">
               <span className="text-slate-400">État du trafic :</span>
@@ -287,7 +267,6 @@ export default function ShuttleRouteWidget({
                 transition={{ delay: idx * 0.05 }}
                 className="relative flex items-center justify-between text-xs"
               >
-                {/* Puce d'étape */}
                 <div
                   className={`absolute -left-6 w-4 h-4 rounded-full border-2 flex items-center justify-center bg-white ${
                     isLast
