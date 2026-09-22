@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "src/components"
+  ],
+  "entryPointStrategy": "expand",
+  "out": "docs",
+  "name": "Documentation Technique - Fodium",
+  "excludeExternals": true,
+  "includeVersion": true,
+  "exclude": [
+    "src/**/*.test.tsx",
+    "src/**/*.spec.tsx"
+  ]
+}

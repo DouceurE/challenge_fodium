@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { 
   Bus, 
   Clock, 
@@ -41,11 +41,10 @@ const STOP_METRICS: Record<string, { baseMinutes: number; distanceKm: number; zo
 
 /**
  * Composant de simulation du trajet de navette Fodium et du trafic en temps réel.
- * Se synchronise instantanément avec la sélection faite dans le formulaire de la page.
  *
  * @component
  * @param {ShuttleRouteWidgetProps} props - Propriétés du composant.
- * @returns {JSX.Element | null} Le widget interactif ou null si non monté (sécurité SSR).
+ * @returns {JSX.Element} Le widget interactif.
  */
 export default function ShuttleRouteWidget({ 
   selectedStop, 
@@ -53,23 +52,17 @@ export default function ShuttleRouteWidget({
   shuttleStops,
   destination 
 }: ShuttleRouteWidgetProps) {
-  const [isMounted, setIsMounted] = useState(false);
   const [departureTime, setDepartureTime] = useState<string>("16:30");
-
-  // Sécurité pour éviter les erreurs d'hydratation SSR sous Next.js
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   /**
    * Récupère les métriques de trafic et de distance propres à l'arrêt actuellement sélectionné.
    */
   const currentStopDetails = useMemo(() => {
-    return STOP_METRICS[selectedStop.name] || {
+    return STOP_METRICS[selectedStop?.name] || {
       baseMinutes: 30,
       distanceKm: 12.0,
       zone: "Dakar",
-      waypoints: [selectedStop.name, "Autoroute A1"]
+      waypoints: [selectedStop?.name || "Point de départ", "Autoroute A1"]
     };
   }, [selectedStop]);
 
@@ -87,7 +80,6 @@ export default function ShuttleRouteWidget({
     return { multiplier: 1.0, status: "Fluide", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" };
   }, [departureTime]);
 
-  // Durée estimée finale du trajet
   const estimatedMinutes = Math.round(currentStopDetails.baseMinutes * trafficImpact.multiplier);
 
   /**
@@ -101,17 +93,14 @@ export default function ShuttleRouteWidget({
     return `${String(arrHours).padStart(2, "0")}:${String(arrMinutes).padStart(2, "0")}`;
   }, [departureTime, estimatedMinutes]);
 
-  // Calcul du CO2 économisé
   const co2SavedKg = (currentStopDetails.distanceKm * 0.12).toFixed(1);
 
   /**
    * Génère les étapes de l'itinéraire.
    */
   const fullWaypoints = useMemo(() => {
-    return [selectedStop.name, ...currentStopDetails.waypoints.slice(1), destination || "Site Événement"];
+    return [selectedStop?.name || "Point de départ", ...currentStopDetails.waypoints.slice(1), destination || "Site Événement"];
   }, [selectedStop, currentStopDetails, destination]);
-
-  if (!isMounted) return null;
 
   return (
     <motion.div 
@@ -129,7 +118,7 @@ export default function ShuttleRouteWidget({
           <div>
             <h3 className="text-lg font-black text-slate-900">Simulateur de Navette Fodium</h3>
             <p className="text-xs text-slate-500">
-              Trajet estimé depuis <span className="font-bold text-slate-700">{selectedStop.name}</span>
+              Trajet estimé depuis <span className="font-bold text-slate-700">{selectedStop?.name}</span>
             </p>
           </div>
         </div>
@@ -145,7 +134,7 @@ export default function ShuttleRouteWidget({
             <MapPin className="w-3.5 h-3.5 text-orange-500" /> Point de départ :
           </label>
           <select
-            value={selectedStop.id}
+            value={selectedStop?.id || ""}
             onChange={(e) => {
               const found = shuttleStops.find((s) => s.id === e.target.value);
               if (found) {
@@ -183,7 +172,7 @@ export default function ShuttleRouteWidget({
       {/* Tableau de bord des résultats dynamiques */}
       <AnimatePresence mode="wait">
         <motion.div 
-          key={`${selectedStop.id}-${departureTime}`}
+          key={`${selectedStop?.id}-${departureTime}`}
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}

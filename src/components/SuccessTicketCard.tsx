@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -72,7 +72,7 @@ export default function SuccessTicketCard({
       <div className="space-y-1">
         <h2 className="text-2xl font-black text-slate-900">Paiement Confirmé !</h2>
         <p className="text-xs text-slate-500">
-          Votre transaction a été validée avec succès via {paymentMethod.toUpperCase()}.
+          Votre transactison a été validée avec succès via {paymentMethod.toUpperCase()}.
         </p>
       </div>
 

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "generate-docs": "typedoc --entryPointStrategy expand ./src"
+    "doc": "typedoc --entryPointStrategy expand ./src"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
