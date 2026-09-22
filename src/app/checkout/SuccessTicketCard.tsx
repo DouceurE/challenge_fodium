@@ -56,8 +56,14 @@ export default function SuccessTicketCard({
         </p>
       </div>
 
-      {/* TICKET DIGITAL OFFICIEL AVEC QR CODE VECTORIEL */}
-      <div className="bg-slate-950 text-white rounded-2xl p-6 space-y-5 border border-slate-800 text-left relative overflow-hidden">
+      {/* TICKET DIGITAL OFFICIEL AVEC EFFET FLIP 3D */}
+      <motion.div
+        initial={{ rotateY: 90, opacity: 0 }}
+        animate={{ rotateY: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+        className="bg-slate-950 text-white rounded-2xl p-6 space-y-5 border border-slate-800 text-left relative overflow-hidden shadow-2xl"
+      >
+        {/* Entête du ticket réintégrée */}
         <div className="flex justify-between items-center border-b border-slate-800 pb-3">
           <span className="text-xs font-bold text-orange-400">Pass Officiel Fodium</span>
           <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-0.5 rounded-full font-bold">
@@ -88,6 +94,30 @@ export default function SuccessTicketCard({
         <span className="block text-center text-[10px] text-slate-400 tracking-widest font-mono pt-1">
           {ticketCode}
         </span>
+      </motion.div>
+
+      {/* BOUTONS D'INITIATIVES CRÉATIVES */}
+      <div className="flex gap-2 pt-1">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          className="flex-1 bg-slate-900 border border-slate-800 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm"
+        >
+          📱 Ajouter au Wallet
+        </motion.button>
+
+        <motion.a
+          href={`https://wa.me/?text=${encodeURIComponent(
+            `Je viens de réserver mon Pass Fodium pour l'événement ! Retrouve-moi au départ de ${stop}.`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.96 }}
+          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow-sm"
+        >
+          💬 Partager sur WhatsApp
+        </motion.a>
       </div>
 
       <div className="pt-2">
